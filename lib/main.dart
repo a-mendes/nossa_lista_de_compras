@@ -142,46 +142,74 @@ class CardItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Container(
-        height: 290,
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20)),
-        margin: EdgeInsets.all(5),
-        padding: EdgeInsets.all(5),
-        child: Stack(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: Image.network(
-                    'https://i.pinimg.com/originals/4a/38/7b/4a387bda853bca3782d73234c786a150.png',
-                    fit: BoxFit.fill,
-                  ),
-                ),
-                Text(
-                  nomeLista,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Text(
-                      'Membros',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
+      child: InkWell(
+        child: Container(
+          height: 290,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20)),
+          margin: EdgeInsets.all(5),
+          padding: EdgeInsets.all(5),
+          child: Stack(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Image.network(
+                      'https://i.pinimg.com/originals/4a/38/7b/4a387bda853bca3782d73234c786a150.png',
+                      fit: BoxFit.fill,
                     ),
-                  ],
-                )
-              ],
-            ),
-          ],
+                  ),
+                  Text(
+                    nomeLista,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'Membros',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ],
+          ),
         ),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+                builder: (context) => ExpandedListaDeCompras(nomeLista: nomeLista)
+            )
+          );
+        },
+      )
+    );
+  }
+}
+
+class ExpandedListaDeCompras extends StatelessWidget{
+  const ExpandedListaDeCompras({super.key, required this.nomeLista});
+
+  final nomeLista;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+          title: Text(nomeLista),
+      ),
+      body: Container(
+        color: Theme.of(context).colorScheme.background,
       ),
     );
   }
 }
+
