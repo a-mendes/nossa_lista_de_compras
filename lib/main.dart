@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'lista_de_compras.dart';
+import 'Tela_lista_de_compras.dart';
 
 void main() {
   runApp(const MyApp());
@@ -54,7 +55,7 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             Visibility(
               visible: !listListaDeCompras.isNotEmpty,
-              child: Text('Você ainda não criou nenhuma lista de compras'),
+              child: const Text('Você ainda não criou nenhuma lista de compras'),
             ),
             Expanded(
               child: showListasDeComprasGrid(listListaDeCompras),
@@ -124,7 +125,7 @@ class _HomePageState extends State<HomePage> {
       crossAxisCount: 3,
       children: List.generate(listListaDeCompras.length, (index) {
         return Container(
-          child: CardItem(nomeLista: listListaDeCompras[index].nome),
+          child: CardItem(listaDeCompras: listListaDeCompras[index]),
         );
       })
     );
@@ -134,21 +135,28 @@ class _HomePageState extends State<HomePage> {
 class CardItem extends StatelessWidget {
   const CardItem({
   super.key,
-  required this.nomeLista
+  required this.listaDeCompras
   });
 
-  final String nomeLista;
+  final ListaDeCompras listaDeCompras;
 
   @override
   Widget build(BuildContext context) {
     return Card(
       child: InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => FormPage(listaDeCompras: listaDeCompras),
+            ),
+          );
+        },
         child: Container(
           height: 290,
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20)),
-          margin: EdgeInsets.all(5),
-          padding: EdgeInsets.all(5),
+          margin: const EdgeInsets.all(5),
+          padding: const EdgeInsets.all(5),
           child: Stack(
             children: [
               Column(
@@ -161,13 +169,13 @@ class CardItem extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    nomeLista,
-                    style: TextStyle(
+                    listaDeCompras.getName,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Row(
+                  const Row(
                     children: [
                       Text(
                         'Membros',
@@ -182,34 +190,14 @@ class CardItem extends StatelessWidget {
               ),
             ],
           ),
-        ),
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-                builder: (context) => ExpandedListaDeCompras(nomeLista: nomeLista)
-            )
-          );
-        },
+        )
       )
     );
   }
-}
-
-class ExpandedListaDeCompras extends StatelessWidget{
-  const ExpandedListaDeCompras({super.key, required this.nomeLista});
-
-  final nomeLista;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-          title: Text(nomeLista),
-      ),
-      body: Container(
-        color: Theme.of(context).colorScheme.background,
-      ),
-    );
+  actionButtonCard(){
+    FormPage(listaDeCompras: listaDeCompras);
   }
 }
+
+
 
