@@ -1,8 +1,20 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'lista_de_compras.dart';
 import 'Tela_lista_de_compras.dart';
+import 'authentication.dart';
 
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'firebase_options.dart';
+
+final FirebaseDatabase _database = FirebaseDatabase.instance;
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -71,10 +83,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void addNovaListadeCompras(){
-    ListaDeCompras listaDeCompras = ListaDeCompras(txtControlerNomeLista.text);
+  void addNovaListadeCompras() {
+    ListaDeCompras novaLista = ListaDeCompras(
+      txtControlerNomeLista.text,
+    );
+    salvarListaDeCompras(novaLista);
     setState(() {
-      listListaDeCompras.add(listaDeCompras);
+      listListaDeCompras.add(novaLista);
     });
   }
 
@@ -199,5 +214,21 @@ class CardItem extends StatelessWidget {
   }
 }
 
-
-
+Future<void> salvarListaDeCompras(ListaDeCompras listaDeCompras) async {
+  try {
+    DatabaseReference listaRef = _database.reference().child('listas_de_compras');
+    await listaRef.push().set({
+      'nome': listaDeCompras.nome,
+      'itens': listaDeCompras.itens.map((item) => {
+        'nome': item.nome,
+        'quantidade': item.quantidade,
+        'status': item.status,
+      }).toList(),
+      'membros': listaDeCompras.membros,
+    });
+    // Salvar bem-sucedido
+  } catch (e) {
+    // Ocorreu um erro durante o salvamento, trate-o de acordo
+    print('Erro ao salvar a lista de compras: $e');
+  }
+}
