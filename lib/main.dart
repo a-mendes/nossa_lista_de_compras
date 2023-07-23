@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'lista_de_compras.dart';
 import 'Tela_lista_de_compras.dart';
+import 'pages/login_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +18,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const HomePage(title: 'Nossa Lista de Compras Home Page'),
+      home: LoginPage(),
+      //home: const HomePage(title: 'Nossa Lista de Compras Home Page'),
     );
   }
 }
