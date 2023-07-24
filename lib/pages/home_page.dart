@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../lista_de_compras.dart';
 import 'lista_de_compras_page.dart';
@@ -12,6 +13,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final user = FirebaseAuth.instance.currentUser!;
 
   //TODO: O armazenamento das listas deve ser feito em nuvem
   List<ListaDeCompras> listListaDeCompras = [];
@@ -52,6 +54,7 @@ class _HomePageState extends State<HomePage> {
     ListaDeCompras novaLista = ListaDeCompras(
       txtControlerNomeLista.text,
     );
+    novaLista.membros.add(user.email.toString());
     salvarListaDeCompras(novaLista);
     setState(() {
       listListaDeCompras.add(novaLista);
