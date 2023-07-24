@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'lista_de_compras.dart';
+import '../lista_de_compras.dart';
 
 class FormPage extends StatefulWidget {
   final ListaDeCompras listaDeCompras;
