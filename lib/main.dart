@@ -1,8 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'lista_de_compras.dart';
 import 'Tela_lista_de_compras.dart';
-import 'authentication.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -85,7 +83,7 @@ class _HomePageState extends State<HomePage> {
 
   void addNovaListadeCompras() {
     ListaDeCompras novaLista = ListaDeCompras(
-      txtControlerNomeLista.text,
+      txtControlerNomeLista.text
     );
     salvarListaDeCompras(novaLista);
     setState(() {
@@ -222,6 +220,7 @@ Future<void> salvarListaDeCompras(ListaDeCompras listaDeCompras) async {
       'itens': listaDeCompras.itens.map((item) => {
         'nome': item.nome,
         'quantidade': item.quantidade,
+        'unidade': item.unidade,
         'status': item.status,
       }).toList(),
       'membros': listaDeCompras.membros,
