@@ -16,6 +16,8 @@ class FormPage extends StatefulWidget {
 class _FormPageState extends State<FormPage>{
   Item item = Item("", 0, UnidadeDeMedida.u, false);
 
+  final txtControlerMembro = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,6 +27,10 @@ class _FormPageState extends State<FormPage>{
           IconButton(
             icon: const Icon(Icons.save), // Ícone de salvamento
             onPressed: salvarListaDeCompras, // Função de tratamento do evento de clique
+          ),
+          IconButton(
+            icon: const Icon(Icons.account_box), // Ícone de salvamento
+            onPressed: addMembroDialog, // Função de tratamento do evento de clique
           ),
         ],
       ),
@@ -67,6 +73,50 @@ class _FormPageState extends State<FormPage>{
     return 0;
   }
 
+  void addMembroDialog(){
+    showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: const Text('Adicionar Membro'),
+          content: Form(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: txtControlerMembro,
+                  validator: (value) {
+                    if (value != null) {
+                      return value.isNotEmpty ? null : 'Digite algum texto';
+                    } else {
+                      return 'Digite algum texto';
+                    }
+                  },
+                  decoration: const InputDecoration(hintText: 'Email do membro'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                if(txtControlerMembro.toString() != ""){
+                  widget.listaDeCompras.membros.add(txtControlerMembro.text);
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Adicionar Membro'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget showItensLista(){
     return ListView.builder(
       padding: const EdgeInsets.all(8),
@@ -91,7 +141,7 @@ class _FormPageState extends State<FormPage>{
               IconButton(
                 icon: const Icon(Icons.edit),
                 onPressed: () {
-                  _showEditItemDialog(context, item, index);
+                  showEditItemDialog(context, item, index);
                 },
               ),
               IconButton(
@@ -106,7 +156,7 @@ class _FormPageState extends State<FormPage>{
               IconButton(
                 icon: const Icon(Icons.delete),
                 onPressed: () {
-                  _showDeleteItemDialog(context, index);
+                  showDeleteItemDialog(context, index);
                 },
               ),
             ],
@@ -186,7 +236,7 @@ class _FormPageState extends State<FormPage>{
     );
   }
 
-  void _showEditItemDialog(BuildContext context, Item item, int index) {
+  void showEditItemDialog(BuildContext context, Item item, int index) {
     final TextEditingController nameController = TextEditingController(text: item.nome);
     final TextEditingController quantityController = TextEditingController(text: item.quantidade.toString());
 
@@ -253,7 +303,7 @@ class _FormPageState extends State<FormPage>{
     );
   }
 
-  void _showDeleteItemDialog(BuildContext context, int index) {
+  void showDeleteItemDialog(BuildContext context, int index) {
     showDialog(
       context: context,
       builder: (_) {
