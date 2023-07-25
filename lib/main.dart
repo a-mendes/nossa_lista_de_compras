@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:nossa_lista_de_compras/pages/main_page.dart';
 
 import 'package:firebase_core/firebase_core.dart';
