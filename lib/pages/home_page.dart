@@ -288,8 +288,8 @@ class CardItem extends StatelessWidget {
 
 Future<void> salvarListaDeCompras(ListaDeCompras listaDeCompras) async {
   try {
-    DatabaseReference listaRef = _database.ref().child('listas_de_compras');
-    await listaRef.push().set({
+    DatabaseReference listaRef = _database.ref().child('listas_de_compras').child(listaDeCompras.nome);
+    await listaRef.set({
       'nome': listaDeCompras.nome,
       'itens': [],
       'membros': listaDeCompras.membros,
