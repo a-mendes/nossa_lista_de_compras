@@ -5,6 +5,8 @@ import 'lista_de_compras_page.dart';
 
 import 'package:firebase_database/firebase_database.dart';
 
+final FirebaseDatabase _database = FirebaseDatabase.instance;
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -17,12 +19,12 @@ class _HomePageState extends State<HomePage> {
 
   //TODO: O armazenamento das listas deve ser feito em nuvem
   List<ListaDeCompras> listListaDeCompras = [];
+
   final txtControlerNomeLista = TextEditingController();
 
   @override
-  void dispose() {
-    txtControlerNomeLista.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
   }
 
   @override
@@ -32,25 +34,42 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Visibility(
-              visible: !listListaDeCompras.isNotEmpty,
-              child: const Text('Você ainda não criou nenhuma lista de compras'),
-            ),
             Expanded(
-              child: showListasDeComprasGrid(listListaDeCompras),
+              child: FutureBuilder(
+                future: buscarListasDoUsuario(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      ),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Text('Erro ao buscar as listas: ${snapshot.error}');
+                  } else {
+                    return listListaDeCompras.isEmpty
+                      ? const Text('Você ainda não criou nenhuma lista de compras')
+                      : showListasDeComprasGrid(listListaDeCompras);
+                  }
+                },
+              ),
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: showNovaListadeComprasDialog,
+        onPressed: showNovaListaDeComprasDialog,
         tooltip: 'Adicionar nova lista de compras',
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  void addNovaListadeCompras() {
+  void addNovaListaDeCompras() {
     ListaDeCompras novaLista = ListaDeCompras(
       txtControlerNomeLista.text,
     );
@@ -61,7 +80,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void showNovaListadeComprasDialog(){
+  void showNovaListaDeComprasDialog() {
     showDialog(
       context: context,
       builder: (_) {
@@ -75,13 +94,14 @@ class _HomePageState extends State<HomePage> {
                   TextFormField(
                     controller: txtControlerNomeLista,
                     validator: (value) {
-                      if(value != null) {
+                      if (value != null) {
                         return value.isNotEmpty ? null : "Enter any text";
                       } else {
-                        return  "Enter any text";
+                        return "Enter any text";
                       }
                     },
-                    decoration: const InputDecoration(hintText: "Nome da Lista"),
+                    decoration: const InputDecoration(
+                        hintText: "Nome da Lista"),
                   ),
                 ],
               )),
@@ -91,8 +111,9 @@ class _HomePageState extends State<HomePage> {
               child: const Text('Cancelar'),
             ),
             TextButton(
-              onPressed: () => {
-                addNovaListadeCompras(),
+              onPressed: () =>
+              {
+                addNovaListaDeCompras(),
                 Navigator.pop(context)
               },
               child: const Text('Adicionar Lista'),
@@ -103,15 +124,60 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget showListasDeComprasGrid(List<ListaDeCompras> listListaDeCompras){
+  Widget showListasDeComprasGrid(List<ListaDeCompras> listListaDeCompras) {
     return GridView.count(
         crossAxisCount: 3,
         children: List.generate(listListaDeCompras.length, (index) {
-          return Container(
-            child: CardItem(listaDeCompras: listListaDeCompras[index]),
-          );
+          return CardItem(listaDeCompras: listListaDeCompras[index]);
         })
     );
+  }
+
+  Future<void> buscarListasDoUsuario() async {
+    String email = user.email.toString();
+    DatabaseReference listaRef = FirebaseDatabase.instance.ref().child('listas_de_compras');
+
+    // Faz a consulta para buscar as listas onde o usuário está incluído como membro
+    DatabaseEvent dbSnapshot = await listaRef.once();
+
+    // Limpa a lista antes de preenchê-la com os novos dados
+    listListaDeCompras.clear();
+
+    // Verifica se o snapshot tem algum valor
+    if (dbSnapshot.snapshot.value != null) {
+      // Converte o valor para o tipo correto (Map<String, dynamic>?)
+      Map<String, dynamic>? dataMap = dbSnapshot.snapshot.value as Map<String, dynamic>?;
+
+      // Itera sobre cada par chave/valor no mapa
+      dataMap?.forEach((key, value) {
+        if (value is Map<String, dynamic>) {
+          // Verifica se o usuário está incluído como membro
+          List<dynamic> membros = value['membros'];
+          if (membros.contains(email)) {
+            List<Item> itens = [];
+            // Cria uma instância de ListaDeCompras diretamente a partir do mapa de dados da lista
+            if(value['itens'] != null){
+                itens = (value['itens'] as List<dynamic>).map((item) {
+                return Item(
+                  item['nome'],
+                  item['quantidade'],
+                  UnidadeDeMedida.values[item['unidade']], // Recuperar o enum usando o índice numérico
+                  item['status'],
+                );
+              }).toList();
+            }
+
+            ListaDeCompras lista = ListaDeCompras(
+              value['nome'],
+              itens: itens,
+              membros: membros.cast<String>(),
+            );
+
+            listListaDeCompras.add(lista);
+          }
+        }
+      });
+    }
   }
 }
 
@@ -184,20 +250,13 @@ class CardItem extends StatelessWidget {
 
 Future<void> salvarListaDeCompras(ListaDeCompras listaDeCompras) async {
   try {
-    final FirebaseDatabase _database = FirebaseDatabase.instance;
-    DatabaseReference listaRef = _database.reference().child('listas_de_compras');
+    DatabaseReference listaRef = _database.ref().child('listas_de_compras');
     await listaRef.push().set({
       'nome': listaDeCompras.nome,
-      'itens': listaDeCompras.itens.map((item) => {
-        'nome': item.nome,
-        'quantidade': item.quantidade,
-        'status': item.status,
-      }).toList(),
+      'itens': [],
       'membros': listaDeCompras.membros,
     });
-    // Salvar bem-sucedido
   } catch (e) {
-    // Ocorreu um erro durante o salvamento, trate-o de acordo
     print('Erro ao salvar a lista de compras: $e');
   }
 }

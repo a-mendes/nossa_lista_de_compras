@@ -1,7 +1,8 @@
-import 'dart:js_util';
-
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import '../lista_de_compras.dart';
+
+final FirebaseDatabase _database = FirebaseDatabase.instance;
 
 class FormPage extends StatefulWidget {
   final ListaDeCompras listaDeCompras;
@@ -23,7 +24,7 @@ class _FormPageState extends State<FormPage>{
         actions: [
           IconButton(
             icon: const Icon(Icons.save), // Ícone de salvamento
-            onPressed: onSaveButtonPressed, // Função de tratamento do evento de clique
+            onPressed: salvarListaDeCompras, // Função de tratamento do evento de clique
           ),
         ],
       ),
@@ -135,7 +136,7 @@ class _FormPageState extends State<FormPage>{
                   },
                   decoration: const InputDecoration(hintText: 'Nome do item'),
                   initialValue: item.nome,
-                  onChanged: (value) => item.nome = value!,
+                  onChanged: (value) => item.nome = value,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -143,15 +144,15 @@ class _FormPageState extends State<FormPage>{
                     Expanded(
                       child: TextFormField(
                         decoration: const InputDecoration(hintText: 'Quantidade'),
-                        onChanged: (value) => item.quantidade = int.parse(value!),
+                        onChanged: (value) => item.quantidade = int.parse(value),
                       ),
                     ),
                     DropdownButton<UnidadeDeMedida>(
+                      value: item.unidade,
                       onChanged: (UnidadeDeMedida? newValue) {
                         setState(() {
                           item.unidade = newValue ?? UnidadeDeMedida.u;
                         });
-                        value: item.unidade;
                       },
                       items: UnidadeDeMedida.values.map((unidade) {
                         return DropdownMenuItem<UnidadeDeMedida>(
@@ -279,7 +280,24 @@ class _FormPageState extends State<FormPage>{
     );
   }
 
-  void onSaveButtonPressed(){
-  }
+  Future<void> salvarListaDeCompras() async {
+    ListaDeCompras listaDeCompras = widget.listaDeCompras;
+    String chaveLista = listaDeCompras.nome;
 
+    try {
+      DatabaseReference listaRef = _database.ref().child('listas_de_compras').child(chaveLista);
+      await listaRef.set({
+        'nome': listaDeCompras.nome,
+        'itens': listaDeCompras.itens.map((item) => {
+          'nome': item.nome,
+          'quantidade': item.quantidade,
+          'unidade': item.unidade.index,
+          'status': item.status,
+        }).toList(),
+        'membros': listaDeCompras.membros,
+      });
+    } catch (e) {
+      print('Erro ao salvar a lista de compras: $e');
+    }
+  }
 }
