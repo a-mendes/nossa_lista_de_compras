@@ -145,24 +145,50 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Map<String, dynamic> convertMap(Map<Object?, Object?> map) {
+    // Cria um novo mapa vazio para a conversão
+    Map<String, dynamic> convertedMap = {};
+
+    // Itera sobre cada par chave/valor no mapa original
+    map.forEach((key, value) {
+      // Converte a chave para String e o valor para dynamic usando MapEntry
+      convertedMap[convertKey(key)] = convertValue(value);
+    });
+
+    return convertedMap;
+  }
+
+  String convertKey(Object? key) {
+    // Converte a chave para String (ou qualquer outra lógica desejada)
+    return key.toString();
+  }
+
+  dynamic convertValue(Object? value) {
+    // Converte o valor para dynamic (ou qualquer outra lógica desejada)
+    return value;
+  }
+
   Future<void> buscarListasDoUsuario() async {
     String email = user.email.toString();
     DatabaseReference listaRef = FirebaseDatabase.instance.ref().child('listas_de_compras');
 
     // Faz a consulta para buscar as listas onde o usuário está incluído como membro
-    DatabaseEvent dbSnapshot = await listaRef.once();
+    DatabaseEvent dbEvent = await listaRef.once();
 
     // Limpa a lista antes de preenchê-la com os novos dados
     listListaDeCompras.clear();
 
     // Verifica se o snapshot tem algum valor
-    if (dbSnapshot.snapshot.value != null) {
+    if (dbEvent.snapshot.value != null) {
       // Converte o valor para o tipo correto (Map<String, dynamic>?)
-      Map<String, dynamic>? dataMap = dbSnapshot.snapshot.value as Map<String, dynamic>?;
+      DataSnapshot dataSnapshot = dbEvent.snapshot;
+      print(dataSnapshot.value);
 
+      Map<Object?, Object?> dataMap = dataSnapshot.value as Map<Object?, Object?>;
+      Map<String, dynamic> dataMapConverted = convertMap(dataMap);
+      
       // Itera sobre cada par chave/valor no mapa
-      dataMap?.forEach((key, value) {
-        if (value is Map<String, dynamic>) {
+      dataMapConverted?.forEach((key, value) {
           // Verifica se o usuário está incluído como membro
           List<dynamic> membros = value['membros'];
           if (membros.contains(email)) {
@@ -186,7 +212,7 @@ class _HomePageState extends State<HomePage> {
             );
 
             listListaDeCompras.add(lista);
-          }
+
         }
       });
     }
