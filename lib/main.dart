@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:nossa_lista_de_compras/api/firebase_application_interface.dart';
+import 'package:nossa_lista_de_compras/custom_notification.dart';
 import 'package:nossa_lista_de_compras/pages/main_page.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
 final FirebaseDatabase _database = FirebaseDatabase.instance;
@@ -12,7 +15,15 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  await FirebaseApi().initNotifications();
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider<NotificationService>(create: (context) => NotificationService())
+      ],
+      child: const MyApp(),
+    )
+  );
 }
 
 class MyApp extends StatelessWidget {

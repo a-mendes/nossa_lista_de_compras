@@ -1,5 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:nossa_lista_de_compras/custom_notification.dart';
+import 'package:provider/provider.dart';
 import '../lista_de_compras.dart';
 import 'lista_de_compras_page.dart';
 
@@ -77,6 +80,15 @@ class _HomePageState extends State<HomePage> {
     salvarListaDeCompras(novaLista);
     setState(() {
       listListaDeCompras.add(novaLista);
+
+      Provider.of<NotificationService>(context, listen: false).showNotification(
+        CustomNotification(
+          id: 1,
+          title: 'Nova Lista de Compras!',
+          body: 'Uma nova lista de compras foi criada. Acesse o app e confira!',
+          payload: '/home'
+        )
+      );
     });
   }
 

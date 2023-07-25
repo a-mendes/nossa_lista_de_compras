@@ -36,10 +36,17 @@ dependencies:
   cupertino_icons: ^1.0.2
   font_awesome_flutter: ^10.5.0
   hidden_drawer_menu: ^3.0.1
+
   firebase_core: ^2.14.0
   firebase_auth: ^4.6.3
   firebase_database: ^10.2.4
+  firebase_messaging: ^14.6.3
+
   google_sign_in: ^5.0.0
+  flutter_local_notifications: ^9.4.0
+  timezone: ^0.8.0
+
+  provider:
 
 dev_dependencies:
   flutter_test:
