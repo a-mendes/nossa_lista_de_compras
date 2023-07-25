@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
+import 'services/notification_service.dart';
 
 final FirebaseDatabase _database = FirebaseDatabase.instance;
 
