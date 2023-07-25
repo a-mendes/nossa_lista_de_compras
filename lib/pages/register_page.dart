@@ -29,7 +29,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool passwordConfirmed(){
     return (_passwordController.text.trim() == _confirmPasswordController.text.trim());
   }
-  
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -140,9 +140,9 @@ class _RegisterPageState extends State<RegisterPage> {
                    **/
                   SizedBox(height: 10),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 25.0),
-                    child: GestureDetector(
-                      onTap: signUp,
+                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                    child: MaterialButton(
+                      onPressed: signUp,
                       child: Container(
                         padding: EdgeInsets.all(15),
                         decoration: BoxDecoration(

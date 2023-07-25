@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../widgets/horizontal_text_line.dart';
+import 'forgot_password_page.dart';
 
 class LoginPage extends StatefulWidget {
   final VoidCallback showRegisterPage;
@@ -17,10 +18,21 @@ class _LoginPageState extends State<LoginPage>{
   final _passwordController = TextEditingController();
 
   Future signIn() async {
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim()
-    );
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim()
+      );
+    } on FirebaseAuthException catch(e){
+      showDialog(
+        context: context,
+        builder: (context){
+          return AlertDialog(
+            content: Text(e.message.toString()),
+          );
+        },
+      );
+    }
   }
 
   @override
@@ -103,14 +115,42 @@ class _LoginPageState extends State<LoginPage>{
                   ),
                 ),
 
+                SizedBox(height: 5),
+                Padding(
+                  padding: const EdgeInsets.only(right: 25.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(context,
+                              MaterialPageRoute(
+                                  builder: (context) {
+                                    return ForgotPasswordPage();
+                                  },
+                              )
+                            );
+                          },
+                        child: Text(
+                          "Esqueci minha senha",
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
                 /**
                  * Sign In
                  **/
                 SizedBox(height: 10),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 25.0),
-                  child: GestureDetector(
-                    onTap: signIn,
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  child: MaterialButton(
+                    onPressed: signIn,
                     child: Container(
                       padding: EdgeInsets.all(15),
                       decoration: BoxDecoration(
