@@ -20,7 +20,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final user = FirebaseAuth.instance.currentUser!;
 
-  //TODO: O armazenamento das listas deve ser feito em nuvem
   List<ListaDeCompras> listListaDeCompras = [];
 
   final txtControlerNomeLista = TextEditingController();
@@ -186,7 +185,7 @@ class _HomePageState extends State<HomePage> {
 
       Map<Object?, Object?> dataMap = dataSnapshot.value as Map<Object?, Object?>;
       Map<String, dynamic> dataMapConverted = convertMap(dataMap);
-      
+
       // Itera sobre cada par chave/valor no mapa
       dataMapConverted?.forEach((key, value) {
           // Verifica se o usuário está incluído como membro
@@ -210,11 +209,29 @@ class _HomePageState extends State<HomePage> {
               itens: itens,
               membros: membros.cast<String>(),
             );
-
+            lista.id = value['id'];
             listListaDeCompras.add(lista);
 
         }
       });
+    }
+  }
+  Future<void> salvarListaDeCompras(ListaDeCompras listaDeCompras) async {
+    try {
+      DatabaseReference listaRef = _database.ref().child('listas_de_compras').child(listaDeCompras.id.toString());
+
+      await listaRef.set({
+        'id': listaDeCompras.id,
+        'nome': listaDeCompras.nome,
+        'itens': listaDeCompras.itens.map((item) => {
+          'nome': item.nome,
+          'quantidade': item.quantidade,
+          'status': item.status,
+        }).toList(),
+        'membros': listaDeCompras.membros,
+      });
+    } catch (e) {
+      print('Erro ao salvar a lista de compras: $e');
     }
   }
 }
@@ -283,18 +300,5 @@ class CardItem extends StatelessWidget {
   }
   actionButtonCard(){
     FormPage(listaDeCompras: listaDeCompras);
-  }
-}
-
-Future<void> salvarListaDeCompras(ListaDeCompras listaDeCompras) async {
-  try {
-    DatabaseReference listaRef = _database.ref().child('listas_de_compras');
-    await listaRef.push().set({
-      'nome': listaDeCompras.nome,
-      'itens': [],
-      'membros': listaDeCompras.membros,
-    });
-  } catch (e) {
-    print('Erro ao salvar a lista de compras: $e');
   }
 }

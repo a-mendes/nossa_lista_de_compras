@@ -1,3 +1,6 @@
+import 'dart:ffi';
+import 'dart:math';
+
 enum UnidadeDeMedida {
   u,  //Unidades
   kg, //Kilogramas
@@ -10,6 +13,7 @@ class ListaDeCompras {
   String nome;
   List<Item> itens;
   List<String> membros;
+  var id = Random().nextInt(100000000);
 
   ListaDeCompras(this.nome, {List<Item>? itens, List<String>? membros})
       : itens = itens ?? [],

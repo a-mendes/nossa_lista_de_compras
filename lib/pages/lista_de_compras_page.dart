@@ -332,11 +332,12 @@ class _FormPageState extends State<FormPage>{
 
   Future<void> salvarListaDeCompras() async {
     ListaDeCompras listaDeCompras = widget.listaDeCompras;
-    String chaveLista = listaDeCompras.nome;
+    int chaveLista = listaDeCompras.id;
 
     try {
-      DatabaseReference listaRef = _database.ref().child('listas_de_compras').child(chaveLista);
+      DatabaseReference listaRef = _database.ref().child('listas_de_compras').child(chaveLista.toString());
       await listaRef.set({
+        'id': chaveLista,
         'nome': listaDeCompras.nome,
         'itens': listaDeCompras.itens.map((item) => {
           'nome': item.nome,
