@@ -74,8 +74,8 @@ class _HomePageState extends State<HomePage> {
   void addNovaListaDeCompras() {
     ListaDeCompras novaLista = ListaDeCompras(
       txtControlerNomeLista.text,
+      membros: [user.email.toString()],
     );
-    novaLista.membros.add(user.email.toString());
     salvarListaDeCompras(novaLista);
     setState(() {
       listListaDeCompras.add(novaLista);
@@ -223,7 +223,7 @@ class _HomePageState extends State<HomePage> {
       await listaRef.set({
         'id': listaDeCompras.id,
         'nome': listaDeCompras.nome,
-        'itens': listaDeCompras.itens.map((item) => {
+        'itens': listaDeCompras.itens?.map((item) => {
           'nome': item.nome,
           'quantidade': item.quantidade,
           'status': item.status,

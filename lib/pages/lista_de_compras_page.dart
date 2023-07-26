@@ -39,7 +39,7 @@ class _FormPageState extends State<FormPage>{
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Visibility(
-              visible: widget.listaDeCompras.itens.isEmpty,
+              visible: widget.listaDeCompras.itens!.isEmpty,
               child: const Text('Você ainda não adicionou nenhum item'),
             ),
             Expanded(
@@ -105,7 +105,9 @@ class _FormPageState extends State<FormPage>{
             TextButton(
               onPressed: () {
                 if(txtControlerMembro.toString() != ""){
-                  widget.listaDeCompras.membros.add(txtControlerMembro.text);
+                  print(widget.listaDeCompras);
+                  widget.listaDeCompras.membros = widget.listaDeCompras.membros?.toList();
+                  widget.listaDeCompras.membros!.add(txtControlerMembro.text.trim());
                   Navigator.pop(context);
                 }
               },
@@ -120,18 +122,18 @@ class _FormPageState extends State<FormPage>{
   Widget showItensLista(){
     return ListView.builder(
       padding: const EdgeInsets.all(8),
-      itemCount: widget.listaDeCompras.itens.length,
+      itemCount: widget.listaDeCompras.itens?.length,
       itemBuilder: (context, index) {
-        final item = widget.listaDeCompras.itens[index];
-        final displayText = '${item.nome} - ${item.quantidade} ${item.unidade.toString().split('.').last}';
+        final item = widget.listaDeCompras.itens?[index];
+        final displayText = '${item?.nome} - ${item?.quantidade} ${item?.unidade.toString().split('.').last}';
 
         return ListTile(
           title: RichText(
             text: TextSpan(
               text: displayText,
               style: TextStyle(
-                decoration: item.status ? TextDecoration.lineThrough : TextDecoration.none,
-                color: item.status ? Colors.green : Colors.black,
+                decoration: item!.status ? TextDecoration.lineThrough : TextDecoration.none,
+                color: item!.status ? Colors.green : Colors.black,
               ),
             ),
           ),
@@ -318,7 +320,7 @@ class _FormPageState extends State<FormPage>{
             TextButton(
               onPressed: () {
                 setState(() {
-                  widget.listaDeCompras.itens.removeAt(index);
+                  widget.listaDeCompras.itens?.removeAt(index);
                 });
                 Navigator.pop(context);
               },
@@ -339,7 +341,7 @@ class _FormPageState extends State<FormPage>{
       await listaRef.set({
         'id': chaveLista,
         'nome': listaDeCompras.nome,
-        'itens': listaDeCompras.itens.map((item) => {
+        'itens': listaDeCompras.itens?.map((item) => {
           'nome': item.nome,
           'quantidade': item.quantidade,
           'unidade': item.unidade.index,

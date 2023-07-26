@@ -11,8 +11,8 @@ enum UnidadeDeMedida {
 
 class ListaDeCompras {
   String nome;
-  List<Item> itens;
-  List<String> membros;
+  List<Item>? itens;
+  List<String>? membros;
   var id = Random().nextInt(100000000);
 
   ListaDeCompras(this.nome, {List<Item>? itens, List<String>? membros})
@@ -30,7 +30,7 @@ class ListaDeCompras {
     if(nomeItem.isEmpty){
       return 0;
     }
-    itens.add(Item(nomeItem, qtde, unidade, false));
+    itens?.add(Item(nomeItem, qtde, unidade, false));
     return 1;
   }
 }
