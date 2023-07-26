@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:nossa_lista_de_compras/custom_notification.dart';
+import 'package:nossa_lista_de_compras/services/notification_service.dart';
 import 'package:provider/provider.dart';
 import '../lista_de_compras.dart';
 import 'lista_de_compras_page.dart';
