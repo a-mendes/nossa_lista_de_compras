@@ -42,7 +42,7 @@ dependencies:
   firebase_database: ^10.2.4
   firebase_messaging: ^14.6.3
 
-  google_sign_in: ^5.0.0
+  google_sign_in: ^6.1.4
   flutter_local_notifications: ^9.4.0
   timezone: ^0.8.0
 

@@ -112,6 +112,14 @@ class _FormPageState extends State<FormPage>{
                   widget.listaDeCompras.membros = widget.listaDeCompras.membros?.toList();
                   widget.listaDeCompras.membros!.add(txtControlerMembro.text.trim());
                   Navigator.pop(context);
+                  showDialog(
+                    context: context,
+                    builder: (context){
+                      return AlertDialog(
+                        content: Text('Membro adicionado com sucesso!'),
+                      );
+                    },
+                  );
                 }
               },
               child: const Text('Adicionar Membro'),
@@ -352,7 +360,14 @@ class _FormPageState extends State<FormPage>{
         }).toList(),
         'membros': listaDeCompras.membros,
       });
-      AlertDialog(content: Text('Informações salvas com sucesso!'));
+      showDialog(
+        context: context,
+        builder: (context){
+          return AlertDialog(
+            content: Text('Informações salvas com sucesso!'),
+          );
+        },
+      );
 
       Provider.of<NotificationService>(context, listen: false).showNotification(
           CustomNotification(
