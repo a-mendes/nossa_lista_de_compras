@@ -4,14 +4,14 @@ import 'package:nossa_lista_de_compras/pages/main_page.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:nossa_lista_de_compras/services/firebase_messaging_service.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'services/notification_service.dart';
 
-final FirebaseDatabase _database = FirebaseDatabase.instance;
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -19,7 +19,8 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        Provider<NotificationService>(create: (context) => NotificationService())
+        Provider<NotificationService>(create: (context) => NotificationService()),
+        Provider<FirebaseMessagingService>(create: (context) => FirebaseMessagingService(context.read<NotificationService>()))
       ],
       child: const MyApp(),
     )

@@ -1,6 +1,9 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:nossa_lista_de_compras/custom_notification.dart';
+import 'package:provider/provider.dart';
 import '../lista_de_compras.dart';
+import '../services/notification_service.dart';
 
 final FirebaseDatabase _database = FirebaseDatabase.instance;
 
@@ -346,6 +349,16 @@ class _FormPageState extends State<FormPage>{
         }).toList(),
         'membros': listaDeCompras.membros,
       });
+      AlertDialog(content: Text('Informações salvas com sucesso!'));
+
+      Provider.of<NotificationService>(context, listen: false).showNotification(
+          CustomNotification(
+              id: 1,
+              title: 'Atualizações na Lista de Compras!',
+              body: 'A lista de compras ${listaDeCompras.nome} foi atualizada! Entre no app e confira',
+              payload: '/home'
+          )
+      );
     } catch (e) {
       print('Erro ao salvar a lista de compras: $e');
     }
