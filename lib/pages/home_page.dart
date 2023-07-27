@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:nossa_lista_de_compras/custom_notification.dart';
+import 'package:nossa_lista_de_compras/custom_utils.dart';
 import 'package:nossa_lista_de_compras/services/firebase_messaging_service.dart';
 import 'package:nossa_lista_de_compras/services/notification_service.dart';
 import 'package:nossa_lista_de_compras/widgets/card_lista_de_compras.dart';
@@ -147,28 +148,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Map<String, dynamic> convertMap(Map<Object?, Object?> map) {
-    // Cria um novo mapa vazio para a conversão
-    Map<String, dynamic> convertedMap = {};
 
-    // Itera sobre cada par chave/valor no mapa original
-    map.forEach((key, value) {
-      // Converte a chave para String e o valor para dynamic usando MapEntry
-      convertedMap[convertKey(key)] = convertValue(value);
-    });
-
-    return convertedMap;
-  }
-
-  String convertKey(Object? key) {
-    // Converte a chave para String (ou qualquer outra lógica desejada)
-    return key.toString();
-  }
-
-  dynamic convertValue(Object? value) {
-    // Converte o valor para dynamic (ou qualquer outra lógica desejada)
-    return value;
-  }
 
   Future<void> buscarListasDoUsuario() async {
     String email = user.email.toString();

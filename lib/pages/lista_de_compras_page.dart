@@ -1,6 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:nossa_lista_de_compras/custom_notification.dart';
+import 'package:nossa_lista_de_compras/custom_utils.dart';
 import 'package:provider/provider.dart';
 import '../lista_de_compras.dart';
 import '../services/notification_service.dart';
@@ -18,6 +19,7 @@ class FormPage extends StatefulWidget {
 
 class _FormPageState extends State<FormPage>{
   Item item = Item("", 0, UnidadeDeMedida.u, false);
+  bool primeiraBusca = false;
 
   final txtControlerMembro = TextEditingController();
 
@@ -41,12 +43,29 @@ class _FormPageState extends State<FormPage>{
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Visibility(
-              visible: widget.listaDeCompras.itens!.isEmpty,
-              child: const Text('Você ainda não adicionou nenhum item'),
-            ),
             Expanded(
-              child: showItensLista(),
+              child: FutureBuilder(
+                future: buscarItensDaLista(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      ),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Text('Erro ao buscar as listas: ${snapshot.error}');
+                  } else {
+                    return widget.listaDeCompras.itens!.isEmpty
+                        ? const Text('Você ainda não adicionou nenhum item')
+                        : showItensLista();
+                  }
+                },
+              ),
             ),
           ],
         ),
@@ -130,7 +149,53 @@ class _FormPageState extends State<FormPage>{
     );
   }
 
-  Widget showItensLista(){
+  Future<void> buscarItensDaLista() async {
+    if(primeiraBusca)
+      return;
+
+    int lista = widget.listaDeCompras.id;
+    DatabaseReference listaRef = FirebaseDatabase.instance.ref().child('listas_de_compras').child(lista.toString());
+
+    // Faz a consulta para buscar as listas onde o usuário está incluído como membro
+    DatabaseEvent dbEvent = await listaRef.once();
+
+    // Verifica se o snapshot tem algum valor
+    if (dbEvent.snapshot.value != null) {
+      // Converte o valor para o tipo correto (Map<String, dynamic>?)
+      DataSnapshot dataSnapshot = dbEvent.snapshot;
+
+      Map<Object?, Object?> dataMap = dataSnapshot.value as Map<Object?, Object?>;
+      Map<String, dynamic> dataMapConverted = convertMap(dataMap);
+
+      // Itera sobre cada par chave/valor no mapa
+      dataMapConverted?.forEach((key, value) {
+        if (key == 'itens') {
+          // Limpa a lista antes de preenchê-la com os novos dados
+          List<Item> itens = [];
+          itens = (value as List<dynamic>).map((item) {
+            return Item(
+              item['nome'],
+              item['quantidade'],
+              UnidadeDeMedida.values[item['unidade']],
+              // Recuperar o enum usando o índice numérico
+              item['status'],
+            );
+          }).toList();
+
+          widget.listaDeCompras.itens?.clear();
+          itens.forEach((element) {
+              widget.listaDeCompras.itens?.add(element);
+          });
+        }
+      });
+    }
+
+    setState(() {
+      primeiraBusca = true;
+    });
+  }
+
+  Widget showItensLista() {
     return ListView.builder(
       padding: const EdgeInsets.all(8),
       itemCount: widget.listaDeCompras.itens?.length,
@@ -360,6 +425,7 @@ class _FormPageState extends State<FormPage>{
         }).toList(),
         'membros': listaDeCompras.membros,
       });
+
       showDialog(
         context: context,
         builder: (context){
@@ -370,13 +436,14 @@ class _FormPageState extends State<FormPage>{
       );
 
       Provider.of<NotificationService>(context, listen: false).showNotification(
-          CustomNotification(
-              id: 1,
-              title: 'Atualizações na Lista de Compras!',
-              body: 'A lista de compras ${listaDeCompras.nome} foi atualizada! Entre no app e confira',
-              payload: '/home'
-          )
+        CustomNotification(
+          id: 1,
+          title: 'Atualizações na Lista de Compras!',
+          body: 'A lista de compras ${listaDeCompras.nome} foi atualizada! Entre no app e confira',
+          payload: '/home'
+        )
       );
+
     } catch (e) {
       print('Erro ao salvar a lista de compras: $e');
     }
