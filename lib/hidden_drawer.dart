@@ -1,6 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hidden_drawer_menu/hidden_drawer_menu.dart';
+import 'package:nossa_lista_de_compras/pages/contact_page.dart';
 import 'package:nossa_lista_de_compras/pages/home_page.dart';
 import 'package:nossa_lista_de_compras/pages/profile_page.dart';
 
@@ -23,15 +23,21 @@ class _HiddenDrawerState extends State<HiddenDrawer>{
       ScreenHiddenDrawer(
           ItemHiddenMenu(
               name: 'Home',
-              baseStyle: TextStyle(),
-              selectedStyle: TextStyle()),
-          HomePage()),
+              baseStyle: const TextStyle(),
+              selectedStyle: const TextStyle()),
+          const HomePage()),
+      ScreenHiddenDrawer(
+          ItemHiddenMenu(
+              name: 'Contacts',
+              baseStyle: const TextStyle(),
+              selectedStyle: const TextStyle()),
+          const ContactPage()),
       ScreenHiddenDrawer(
           ItemHiddenMenu(
               name: 'Profile',
-              baseStyle: TextStyle(),
-              selectedStyle: TextStyle()),
-          ProfilePage())
+              baseStyle: const TextStyle(),
+              selectedStyle: const TextStyle()),
+          const ProfilePage())
     ];
   }
 
