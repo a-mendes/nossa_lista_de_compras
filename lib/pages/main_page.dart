@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:nossa_lista_de_compras/hidden_drawer.dart';
 import 'package:nossa_lista_de_compras/pages/auth_page.dart';
 
-class MainPage extends StatelessWidget {
+class MainPage extends StatelessWidget{
   const MainPage({Key? key}) : super(key:key);
 
   @override

@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:nossa_lista_de_compras/services/auth_service.dart';
 
 import '../widgets/horizontal_text_line.dart';
 
@@ -14,6 +13,7 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -62,11 +62,33 @@ class _RegisterPageState extends State<RegisterPage> {
                         fontSize: 20
                     ),
                   ),
-
+                  /**
+                   * Nome
+                   **/
+                  SizedBox(height: 20),
+                  Padding(padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.white),
+                          borderRadius: BorderRadius.circular(12)
+                      ),
+                      child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20.0),
+                          child: TextField(
+                            controller: _nameController,
+                            decoration: InputDecoration(
+                                border: InputBorder.none,
+                                hintText: "Nome"
+                            ),
+                          )
+                      ),
+                    ),
+                  ),
                   /**
                    * Email
                    **/
-                  SizedBox(height: 20),
+                  SizedBox(height: 10),
                   Padding(padding: const EdgeInsets.symmetric(horizontal: 25.0),
                     child: Container(
                       decoration: BoxDecoration(
@@ -205,34 +227,31 @@ class _RegisterPageState extends State<RegisterPage> {
                   SizedBox(height: 10),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 25.0),
-                    child: GestureDetector(
-                      onTap: () => AuthService().signIhWithGoogle(),
-                      child: Container(
-                        padding: EdgeInsets.all(15),
-                        decoration: BoxDecoration(
-                          color: Colors.deepPurple[100],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            FaIcon(
-                              FontAwesomeIcons.google,
-                              color: Colors.deepPurple,
-                            ),
-                            SizedBox(width: 10),
-                            Center(
-                              child: Text(
-                                "Cadastre-se com Google",
-                                style: TextStyle(
-                                    color: Colors.deepPurple,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18
-                                ),
+                    child: Container(
+                      padding: EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        color: Colors.deepPurple[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          FaIcon(
+                            FontAwesomeIcons.google,
+                            color: Colors.deepPurple,
+                          ),
+                          SizedBox(width: 10),
+                          Center(
+                            child: Text(
+                              "Cadastre-se com Google",
+                              style: TextStyle(
+                                  color: Colors.deepPurple,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
