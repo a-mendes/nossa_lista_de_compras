@@ -148,8 +148,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
-
   Future<void> buscarListasDoUsuario() async {
     String email = user.email.toString();
     DatabaseReference listaRef = FirebaseDatabase.instance.ref().child('listas_de_compras');
@@ -183,6 +181,7 @@ class _HomePageState extends State<HomePage> {
                   item['quantidade'],
                   UnidadeDeMedida.values[item['unidade']], // Recuperar o enum usando o índice numérico
                   item['status'],
+                  item['categoria'],
                 );
               }).toList();
             }
@@ -210,6 +209,8 @@ class _HomePageState extends State<HomePage> {
         'itens': listaDeCompras.itens?.map((item) => {
           'nome': item.nome,
           'quantidade': item.quantidade,
+          'unidade': item.unidade.index,
+          'categoria': item.categoria,
           'status': item.status,
         }).toList(),
         'membros': listaDeCompras.membros,

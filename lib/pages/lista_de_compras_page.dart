@@ -18,8 +18,11 @@ class FormPage extends StatefulWidget {
 }
 
 class _FormPageState extends State<FormPage>{
-  Item item = Item("", 0, UnidadeDeMedida.u, false);
+  Item item = Item("", 0, UnidadeDeMedida.u, false, "");
   bool primeiraBusca = false;
+
+  List<String> listCategoriasItens = [];
+  String? selectedCategoria = "teste";
 
   final txtControlerMembro = TextEditingController();
 
@@ -45,7 +48,7 @@ class _FormPageState extends State<FormPage>{
           children: <Widget>[
             Expanded(
               child: FutureBuilder(
-                future: buscarItensDaLista(),
+                future: buscarDados(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
@@ -80,11 +83,15 @@ class _FormPageState extends State<FormPage>{
   }
 
   void addItem(){
-    widget.listaDeCompras.addItem(item.nome, item.quantidade, item.unidade);
+    widget.listaDeCompras.addItem(item.nome, item.quantidade, item.unidade, item.categoria);
+
+    print("categoria on save: ${item.categoria}");
+
     setState(() {
       item.nome = '';
       item.quantidade = 0;
       item.unidade = UnidadeDeMedida.u;
+      item.categoria = '';
     });
   }
 
@@ -179,6 +186,7 @@ class _FormPageState extends State<FormPage>{
               UnidadeDeMedida.values[item['unidade']],
               // Recuperar o enum usando o índice numérico
               item['status'],
+              item['categoria'],
             );
           }).toList();
 
@@ -278,9 +286,11 @@ class _FormPageState extends State<FormPage>{
                     DropdownButton<UnidadeDeMedida>(
                       value: item.unidade,
                       onChanged: (UnidadeDeMedida? newValue) {
-                        setState(() {
-                          item.unidade = newValue ?? UnidadeDeMedida.u;
-                        });
+                        if(newValue != null){
+                          setState(() {
+                            item.unidade = newValue;
+                          });
+                        }
                       },
                       items: UnidadeDeMedida.values.map((unidade) {
                         return DropdownMenuItem<UnidadeDeMedida>(
@@ -291,6 +301,25 @@ class _FormPageState extends State<FormPage>{
                     ),
                   ],
                 ),
+                Row(
+                  children: [
+                    DropdownButton<String>(
+                      value: selectedCategoria,
+                      items: listCategoriasItens.map((String categoria) {
+                        return DropdownMenuItem(
+                          value: categoria,
+                          child: Text(categoria),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          item.categoria = newValue!;
+                          print("Selecionado: $newValue");
+                        });
+                      },
+                    ),
+                  ],
+                )
               ],
             ),
           ),
@@ -421,6 +450,7 @@ class _FormPageState extends State<FormPage>{
           'nome': item.nome,
           'quantidade': item.quantidade,
           'unidade': item.unidade.index,
+          'categoria': item.categoria,
           'status': item.status,
         }).toList(),
         'membros': listaDeCompras.membros,
@@ -446,6 +476,39 @@ class _FormPageState extends State<FormPage>{
 
     } catch (e) {
       print('Erro ao salvar a lista de compras: $e');
+    }
+  }
+
+  Future<void> buscarDados() async {
+    buscarItensDaLista();
+    buscarCategoriasDeItens();
+    selectedCategoria = listCategoriasItens.first;
+  }
+
+  Future<void> buscarCategoriasDeItens() async {
+    DatabaseReference listaRef = FirebaseDatabase.instance.ref().child('categoria_item');
+
+    // Faz a consulta para buscar as categorias
+    DatabaseEvent dbEvent = await listaRef.once();
+
+    // Limpa as categorias antes de preenchê-la com os novos dados
+    listCategoriasItens.clear();
+
+    // Verifica se o snapshot tem algum valor
+    if (dbEvent.snapshot.value != null) {
+      // Converte o valor para o tipo correto (Map<String, dynamic>?)
+      DataSnapshot dataSnapshot = dbEvent.snapshot;
+
+      List<Object?> dataList = dataSnapshot.value as List<Object?>;
+
+      // Itera sobre cada par chave/valor no mapa
+      dataList?.forEach((value) {
+        if (value is String) {
+          String categoriaValue = value;
+          if (categoriaValue != null && categoriaValue.isNotEmpty)
+            listCategoriasItens.add(categoriaValue);
+        }
+      });
     }
   }
 }
