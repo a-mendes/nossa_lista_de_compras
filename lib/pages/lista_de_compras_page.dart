@@ -2,6 +2,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:nossa_lista_de_compras/custom_notification.dart';
 import 'package:nossa_lista_de_compras/custom_utils.dart';
+import 'package:nossa_lista_de_compras/widgets/dropdownmenu_custom.dart';
 import 'package:provider/provider.dart';
 import '../lista_de_compras.dart';
 import '../services/notification_service.dart';
@@ -283,41 +284,18 @@ class _FormPageState extends State<FormPage>{
                         onChanged: (value) => item.quantidade = int.parse(value),
                       ),
                     ),
-                    DropdownButton<UnidadeDeMedida>(
-                      value: item.unidade,
-                      onChanged: (UnidadeDeMedida? newValue) {
-                        if(newValue != null){
-                          setState(() {
-                            item.unidade = newValue;
-                          });
-                        }
-                      },
-                      items: UnidadeDeMedida.values.map((unidade) {
-                        return DropdownMenuItem<UnidadeDeMedida>(
-                          value: unidade,
-                          child: Text(unidade.toString().split('.').last),
-                        );
-                      }).toList(),
-                    ),
+                    DropdownMenuCustom<String>(
+                        list: UnidadeDeMedida.values.map((e) => e.toString().split('.').last).toList(),
+                        doOnSelected: updateUnidadeItem
+                    )
                   ],
                 ),
                 Row(
                   children: [
-                    DropdownButton<String>(
-                      value: selectedCategoria,
-                      items: listCategoriasItens.map((String categoria) {
-                        return DropdownMenuItem(
-                          value: categoria,
-                          child: Text(categoria),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          item.categoria = newValue!;
-                          print("Selecionado: $newValue");
-                        });
-                      },
-                    ),
+                    DropdownMenuCustom<String>(
+                      list: listCategoriasItens,
+                      doOnSelected: updateCategoriaItem
+                    )
                   ],
                 )
               ],
@@ -340,6 +318,17 @@ class _FormPageState extends State<FormPage>{
           ],
         );
       },
+    );
+  }
+
+  void updateCategoriaItem(String? categoria){
+    item.categoria = categoria!;
+  }
+
+  void updateUnidadeItem(String? unidadeDeMedida){
+    item.unidade = UnidadeDeMedida.values.firstWhere(
+          (status) => status.toString().split('.').last == unidadeDeMedida,
+      orElse: () => UnidadeDeMedida.u, // Valor padrão se não encontrar correspondência
     );
   }
 
