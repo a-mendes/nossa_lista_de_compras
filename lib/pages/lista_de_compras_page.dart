@@ -11,7 +11,6 @@ final FirebaseDatabase _database = FirebaseDatabase.instance;
 
 class FormPage extends StatefulWidget {
   final ListaDeCompras listaDeCompras;
-
   const FormPage({Key? key, required this.listaDeCompras}) : super(key: key);
 
   @override
@@ -23,9 +22,17 @@ class _FormPageState extends State<FormPage>{
   bool primeiraBusca = false;
 
   List<String> listCategoriasItens = [];
-  String? selectedCategoria = "teste";
+  List<String> filtros = ["Exibir Tudo"];
+  List<Item> itensFiltrados = [];
 
   final txtControlerMembro = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    buscarCategoriasDeItens();
+    updateItensLista("Exibir Tudo");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,60 +41,120 @@ class _FormPageState extends State<FormPage>{
         title: Text(widget.listaDeCompras.getName),
         actions: [
           IconButton(
-            icon: const Icon(Icons.save), // Ícone de salvamento
-            onPressed: salvarListaDeCompras, // Função de tratamento do evento de clique
+            icon: const Icon(Icons.save),
+            onPressed: salvarListaDeCompras,
           ),
           IconButton(
-            icon: const Icon(Icons.account_box), // Ícone de salvamento
-            onPressed: addMembroDialog, // Função de tratamento do evento de clique
+            icon: const Icon(Icons.account_box),
+            onPressed: addMembroDialog,
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Expanded(
-              child: FutureBuilder(
-                future: buscarDados(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
-                      ),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Text('Erro ao buscar as listas: ${snapshot.error}');
-                  } else {
-                    return widget.listaDeCompras.itens!.isEmpty
-                        ? const Text('Você ainda não adicionou nenhum item')
-                        : showItensLista();
-                  }
-                },
+      body: Column(
+        children: [
+          DropdownMenuCustom<String>(
+            list: filtros,
+            doOnSelected: (categoria) => updateItensLista(categoria),
+          ),
+          SizedBox(height: 16),
+          Expanded(
+            child: FutureBuilder(
+              future: buscarItensDaLista(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                    ),
+                  );
+                } else if (snapshot.hasError) {
+                  return Text('Erro ao buscar as listas: ${snapshot.error}');
+                } else {
+                  return showItensLista();
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => showAddNovoItemDialog(context),
+        tooltip: 'Adicionar item',
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  void updateItensLista(String filtro){
+    if (filtro != null && filtro.isNotEmpty && filtro != "Exibir Tudo") {
+      setState(() {
+        itensFiltrados = widget.listaDeCompras.itens!
+            .where((i) => i.categoria == filtro)
+            .toList();
+      });
+    } else {
+      setState(() {
+        itensFiltrados = widget.listaDeCompras.itens!;
+      });
+    }
+  }
+
+  Widget showItensLista() {
+    if(itensFiltrados.length <= 0)
+      return Text('Você ainda não adicionou nenhum item');
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(8),
+      itemCount: itensFiltrados.length,
+      itemBuilder: (context, index) {
+        final item = itensFiltrados[index];
+        final displayText =
+            '${item.nome} - ${item.quantidade} ${item.unidade.toString().split('.').last}';
+
+        return ListTile(
+          title: RichText(
+            text: TextSpan(
+              text: displayText,
+              style: TextStyle(
+                decoration:
+                item.status ? TextDecoration.lineThrough : TextDecoration.none,
+                color: item.status ? Colors.green : Colors.black,
               ),
             ),
-          ],
-        ),
-      ),
-       floatingActionButton: FloatingActionButton(
-         onPressed: () => showAddNovoItemDialog(context),
-         tooltip: 'Adicionar item',
-         child: const Icon(Icons.add),
-       ),
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () {
+                  showEditItemDialog(context, item, index);
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.check_circle),
+                color: item.status ? Colors.green : Colors.grey,
+                onPressed: () {
+                  setState(() {
+                    item.status = !item.status;
+                  });
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () {
+                  showDeleteItemDialog(context, index);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
-
   }
 
   void addItem(){
     widget.listaDeCompras.addItem(item.nome, item.quantidade, item.unidade, item.categoria);
-
-    print("categoria on save: ${item.categoria}");
-
     setState(() {
       item.nome = '';
       item.quantidade = 0;
@@ -158,8 +225,9 @@ class _FormPageState extends State<FormPage>{
   }
 
   Future<void> buscarItensDaLista() async {
-    if(primeiraBusca)
+    if(primeiraBusca) {
       return;
+    }
 
     int lista = widget.listaDeCompras.id;
     DatabaseReference listaRef = FirebaseDatabase.instance.ref().child('listas_de_compras').child(lista.toString());
@@ -204,54 +272,7 @@ class _FormPageState extends State<FormPage>{
     });
   }
 
-  Widget showItensLista() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(8),
-      itemCount: widget.listaDeCompras.itens?.length,
-      itemBuilder: (context, index) {
-        final item = widget.listaDeCompras.itens?[index];
-        final displayText = '${item?.nome} - ${item?.quantidade} ${item?.unidade.toString().split('.').last}';
 
-        return ListTile(
-          title: RichText(
-            text: TextSpan(
-              text: displayText,
-              style: TextStyle(
-                decoration: item!.status ? TextDecoration.lineThrough : TextDecoration.none,
-                color: item!.status ? Colors.green : Colors.black,
-              ),
-            ),
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: () {
-                  showEditItemDialog(context, item, index);
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.check_circle),
-                color: item.status ? Colors.green : Colors.grey,
-                onPressed: () {
-                  setState(() {
-                    item.status = !item.status;
-                  });
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: () {
-                  showDeleteItemDialog(context, index);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   void showAddNovoItemDialog(BuildContext context){
     showDialog(
@@ -286,7 +307,12 @@ class _FormPageState extends State<FormPage>{
                     ),
                     DropdownMenuCustom<String>(
                         list: UnidadeDeMedida.values.map((e) => e.toString().split('.').last).toList(),
-                        doOnSelected: updateUnidadeItem
+                        doOnSelected: (String? unidadeDeMedida) => {
+                          item.unidade = UnidadeDeMedida.values.firstWhere(
+                                (status) => status.toString().split('.').last == unidadeDeMedida,
+                            orElse: () => UnidadeDeMedida.u, // Valor padrão se não encontrar correspondência
+                          )
+                        }
                     )
                   ],
                 ),
@@ -294,7 +320,7 @@ class _FormPageState extends State<FormPage>{
                   children: [
                     DropdownMenuCustom<String>(
                       list: listCategoriasItens,
-                      doOnSelected: updateCategoriaItem
+                      doOnSelected: (categoria) => item.categoria = categoria!,
                     )
                   ],
                 )
@@ -318,17 +344,6 @@ class _FormPageState extends State<FormPage>{
           ],
         );
       },
-    );
-  }
-
-  void updateCategoriaItem(String? categoria){
-    item.categoria = categoria!;
-  }
-
-  void updateUnidadeItem(String? unidadeDeMedida){
-    item.unidade = UnidadeDeMedida.values.firstWhere(
-          (status) => status.toString().split('.').last == unidadeDeMedida,
-      orElse: () => UnidadeDeMedida.u, // Valor padrão se não encontrar correspondência
     );
   }
 
@@ -468,12 +483,6 @@ class _FormPageState extends State<FormPage>{
     }
   }
 
-  Future<void> buscarDados() async {
-    buscarItensDaLista();
-    buscarCategoriasDeItens();
-    selectedCategoria = listCategoriasItens.first;
-  }
-
   Future<void> buscarCategoriasDeItens() async {
     DatabaseReference listaRef = FirebaseDatabase.instance.ref().child('categoria_item');
 
@@ -494,10 +503,16 @@ class _FormPageState extends State<FormPage>{
       dataList?.forEach((value) {
         if (value is String) {
           String categoriaValue = value;
-          if (categoriaValue != null && categoriaValue.isNotEmpty)
+          if (categoriaValue != null && categoriaValue.isNotEmpty) {
             listCategoriasItens.add(categoriaValue);
+          }
         }
       });
+
+      filtros.clear();
+      filtros.add("Exibir Tudo");
+      filtros.addAll(listCategoriasItens);
+      print(filtros);
     }
   }
 }
