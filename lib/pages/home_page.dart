@@ -148,8 +148,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
-
   Future<void> buscarListasDoUsuario() async {
     String email = user.email.toString();
     DatabaseReference listaRef = FirebaseDatabase.instance.ref().child('listas_de_compras');
