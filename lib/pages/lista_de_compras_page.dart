@@ -2,6 +2,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:nossa_lista_de_compras/custom_notification.dart';
 import 'package:nossa_lista_de_compras/custom_utils.dart';
+import 'package:nossa_lista_de_compras/widgets/dropdownmenu_custom.dart';
 import 'package:provider/provider.dart';
 import '../lista_de_compras.dart';
 import '../services/notification_service.dart';
@@ -18,8 +19,11 @@ class FormPage extends StatefulWidget {
 }
 
 class _FormPageState extends State<FormPage>{
-  Item item = Item("", 0, UnidadeDeMedida.u, false);
+  Item item = Item("", 0, UnidadeDeMedida.u, false, "");
   bool primeiraBusca = false;
+
+  List<String> listCategoriasItens = [];
+  String? selectedCategoria = "teste";
 
   final txtControlerMembro = TextEditingController();
 
@@ -45,7 +49,7 @@ class _FormPageState extends State<FormPage>{
           children: <Widget>[
             Expanded(
               child: FutureBuilder(
-                future: buscarItensDaLista(),
+                future: buscarDados(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
@@ -80,11 +84,15 @@ class _FormPageState extends State<FormPage>{
   }
 
   void addItem(){
-    widget.listaDeCompras.addItem(item.nome, item.quantidade, item.unidade);
+    widget.listaDeCompras.addItem(item.nome, item.quantidade, item.unidade, item.categoria);
+
+    print("categoria on save: ${item.categoria}");
+
     setState(() {
       item.nome = '';
       item.quantidade = 0;
       item.unidade = UnidadeDeMedida.u;
+      item.categoria = '';
     });
   }
 
@@ -179,6 +187,7 @@ class _FormPageState extends State<FormPage>{
               UnidadeDeMedida.values[item['unidade']],
               // Recuperar o enum usando o índice numérico
               item['status'],
+              item['categoria'],
             );
           }).toList();
 
@@ -275,22 +284,20 @@ class _FormPageState extends State<FormPage>{
                         onChanged: (value) => item.quantidade = int.parse(value),
                       ),
                     ),
-                    DropdownButton<UnidadeDeMedida>(
-                      value: item.unidade,
-                      onChanged: (UnidadeDeMedida? newValue) {
-                        setState(() {
-                          item.unidade = newValue ?? UnidadeDeMedida.u;
-                        });
-                      },
-                      items: UnidadeDeMedida.values.map((unidade) {
-                        return DropdownMenuItem<UnidadeDeMedida>(
-                          value: unidade,
-                          child: Text(unidade.toString().split('.').last),
-                        );
-                      }).toList(),
-                    ),
+                    DropdownMenuCustom<String>(
+                        list: UnidadeDeMedida.values.map((e) => e.toString().split('.').last).toList(),
+                        doOnSelected: updateUnidadeItem
+                    )
                   ],
                 ),
+                Row(
+                  children: [
+                    DropdownMenuCustom<String>(
+                      list: listCategoriasItens,
+                      doOnSelected: updateCategoriaItem
+                    )
+                  ],
+                )
               ],
             ),
           ),
@@ -311,6 +318,17 @@ class _FormPageState extends State<FormPage>{
           ],
         );
       },
+    );
+  }
+
+  void updateCategoriaItem(String? categoria){
+    item.categoria = categoria!;
+  }
+
+  void updateUnidadeItem(String? unidadeDeMedida){
+    item.unidade = UnidadeDeMedida.values.firstWhere(
+          (status) => status.toString().split('.').last == unidadeDeMedida,
+      orElse: () => UnidadeDeMedida.u, // Valor padrão se não encontrar correspondência
     );
   }
 
@@ -421,6 +439,7 @@ class _FormPageState extends State<FormPage>{
           'nome': item.nome,
           'quantidade': item.quantidade,
           'unidade': item.unidade.index,
+          'categoria': item.categoria,
           'status': item.status,
         }).toList(),
         'membros': listaDeCompras.membros,
@@ -446,6 +465,39 @@ class _FormPageState extends State<FormPage>{
 
     } catch (e) {
       print('Erro ao salvar a lista de compras: $e');
+    }
+  }
+
+  Future<void> buscarDados() async {
+    buscarItensDaLista();
+    buscarCategoriasDeItens();
+    selectedCategoria = listCategoriasItens.first;
+  }
+
+  Future<void> buscarCategoriasDeItens() async {
+    DatabaseReference listaRef = FirebaseDatabase.instance.ref().child('categoria_item');
+
+    // Faz a consulta para buscar as categorias
+    DatabaseEvent dbEvent = await listaRef.once();
+
+    // Limpa as categorias antes de preenchê-la com os novos dados
+    listCategoriasItens.clear();
+
+    // Verifica se o snapshot tem algum valor
+    if (dbEvent.snapshot.value != null) {
+      // Converte o valor para o tipo correto (Map<String, dynamic>?)
+      DataSnapshot dataSnapshot = dbEvent.snapshot;
+
+      List<Object?> dataList = dataSnapshot.value as List<Object?>;
+
+      // Itera sobre cada par chave/valor no mapa
+      dataList?.forEach((value) {
+        if (value is String) {
+          String categoriaValue = value;
+          if (categoriaValue != null && categoriaValue.isNotEmpty)
+            listCategoriasItens.add(categoriaValue);
+        }
+      });
     }
   }
 }

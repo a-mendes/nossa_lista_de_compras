@@ -23,14 +23,16 @@ class ListaDeCompras {
     return nome;
   }
 
-  int addItem(String nomeItem, int qtde, UnidadeDeMedida unidade){
+  int addItem(String nomeItem, int qtde, UnidadeDeMedida unidade, String categoria){
     if(qtde <= 0) {
       return 0;
     }
     if(nomeItem.isEmpty){
       return 0;
     }
-    itens?.add(Item(nomeItem, qtde, unidade, false));
+
+    print("categoria on add $categoria");
+    itens?.add(Item(nomeItem, qtde, unidade, false, categoria));
     return 1;
   }
 }
@@ -40,10 +42,11 @@ class Item{
   int quantidade;
   bool status;
   UnidadeDeMedida unidade;
+  String categoria;
 
-  Item(this.nome, this.quantidade, this.unidade, this.status);
+  Item(this.nome, this.quantidade, this.unidade, this.status, this.categoria);
 
-  UnidadeDeMedida get getUnidade{
+  UnidadeDeMedida get getUnidade {
     return unidade;
   }
 }
