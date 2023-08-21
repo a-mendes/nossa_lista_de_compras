@@ -1,9 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:nossa_lista_de_compras/custom_notification.dart';
 import 'package:nossa_lista_de_compras/custom_utils.dart';
 import 'package:nossa_lista_de_compras/widgets/dropdownmenu_custom.dart';
 import 'package:provider/provider.dart';
+import '../contact.dart';
 import '../lista_de_compras.dart';
 import '../services/notification_service.dart';
 
@@ -19,9 +21,11 @@ class FormPage extends StatefulWidget {
 }
 
 class _FormPageState extends State<FormPage>{
+  final user = FirebaseAuth.instance.currentUser!;
   Item item = Item("", 0, UnidadeDeMedida.u, false, "");
   bool primeiraBusca = false;
 
+  List<Contact> listaContatos = [];
   List<String> listCategoriasItens = [];
   String? selectedCategoria = "teste";
 
@@ -74,11 +78,11 @@ class _FormPageState extends State<FormPage>{
           ],
         ),
       ),
-       floatingActionButton: FloatingActionButton(
-         onPressed: () => showAddNovoItemDialog(context),
-         tooltip: 'Adicionar item',
-         child: const Icon(Icons.add),
-       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => showAddNovoItemDialog(context),
+        tooltip: 'Adicionar item',
+        child: const Icon(Icons.add),
+      ),
     );
 
   }
@@ -103,7 +107,9 @@ class _FormPageState extends State<FormPage>{
     return 0;
   }
 
-  void addMembroDialog(){
+  void addMembroDialog() {
+    String contatoSelecionado = ""; // Variável para armazenar o contato selecionado no dropdown
+
     showDialog(
       context: context,
       builder: (_) {
@@ -113,8 +119,29 @@ class _FormPageState extends State<FormPage>{
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                Row(
+                  children: [
+                    DropdownButton<Contact>(
+                      items: listaContatos.map((contact) {
+                        return DropdownMenuItem<Contact>(
+                          value: contact,
+                          child: Text(contact.nome),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          contatoSelecionado = value!.email!;
+                          txtControlerMembro.text = contatoSelecionado;
+                        });
+                      },
+                      value: null,
+                      hint: Text('Selecione um contato'),
+                    ),
+                  ],
+                ),
                 TextFormField(
                   controller: txtControlerMembro,
+                  decoration: const InputDecoration(hintText: 'Email do membro'),
                   validator: (value) {
                     if (value != null) {
                       return value.isNotEmpty ? null : 'Digite algum texto';
@@ -122,7 +149,11 @@ class _FormPageState extends State<FormPage>{
                       return 'Digite algum texto';
                     }
                   },
-                  decoration: const InputDecoration(hintText: 'Email do membro'),
+                  onChanged: (value) {
+                    setState(() {
+                      contatoSelecionado = value;
+                    });
+                  },
                 ),
               ],
             ),
@@ -134,15 +165,14 @@ class _FormPageState extends State<FormPage>{
             ),
             TextButton(
               onPressed: () {
-                if(txtControlerMembro.toString() != ""){
-                  print(widget.listaDeCompras);
+                if (txtControlerMembro.text.trim().isNotEmpty) {
                   widget.listaDeCompras.membros = widget.listaDeCompras.membros?.toList();
                   widget.listaDeCompras.membros!.add(txtControlerMembro.text.trim());
                   Navigator.pop(context);
                   showDialog(
                     context: context,
-                    builder: (context){
-                      return AlertDialog(
+                    builder: (context) {
+                      return const AlertDialog(
                         content: Text('Membro adicionado com sucesso!'),
                       );
                     },
@@ -155,53 +185,6 @@ class _FormPageState extends State<FormPage>{
         );
       },
     );
-  }
-
-  Future<void> buscarItensDaLista() async {
-    if(primeiraBusca)
-      return;
-
-    int lista = widget.listaDeCompras.id;
-    DatabaseReference listaRef = FirebaseDatabase.instance.ref().child('listas_de_compras').child(lista.toString());
-
-    // Faz a consulta para buscar as listas onde o usuário está incluído como membro
-    DatabaseEvent dbEvent = await listaRef.once();
-
-    // Verifica se o snapshot tem algum valor
-    if (dbEvent.snapshot.value != null) {
-      // Converte o valor para o tipo correto (Map<String, dynamic>?)
-      DataSnapshot dataSnapshot = dbEvent.snapshot;
-
-      Map<Object?, Object?> dataMap = dataSnapshot.value as Map<Object?, Object?>;
-      Map<String, dynamic> dataMapConverted = convertMap(dataMap);
-
-      // Itera sobre cada par chave/valor no mapa
-      dataMapConverted?.forEach((key, value) {
-        if (key == 'itens') {
-          // Limpa a lista antes de preenchê-la com os novos dados
-          List<Item> itens = [];
-          itens = (value as List<dynamic>).map((item) {
-            return Item(
-              item['nome'],
-              item['quantidade'],
-              UnidadeDeMedida.values[item['unidade']],
-              // Recuperar o enum usando o índice numérico
-              item['status'],
-              item['categoria'],
-            );
-          }).toList();
-
-          widget.listaDeCompras.itens?.clear();
-          itens.forEach((element) {
-              widget.listaDeCompras.itens?.add(element);
-          });
-        }
-      });
-    }
-
-    setState(() {
-      primeiraBusca = true;
-    });
   }
 
   Widget showItensLista() {
@@ -293,8 +276,8 @@ class _FormPageState extends State<FormPage>{
                 Row(
                   children: [
                     DropdownMenuCustom<String>(
-                      list: listCategoriasItens,
-                      doOnSelected: updateCategoriaItem
+                        list: listCategoriasItens,
+                        doOnSelected: updateCategoriaItem
                     )
                   ],
                 )
@@ -319,6 +302,10 @@ class _FormPageState extends State<FormPage>{
         );
       },
     );
+  }
+
+  void updateMembroItem(String? membro){
+    item.categoria = membro!;
   }
 
   void updateCategoriaItem(String? categoria){
@@ -455,12 +442,12 @@ class _FormPageState extends State<FormPage>{
       );
 
       Provider.of<NotificationService>(context, listen: false).showNotification(
-        CustomNotification(
-          id: 1,
-          title: 'Atualizações na Lista de Compras!',
-          body: 'A lista de compras ${listaDeCompras.nome} foi atualizada! Entre no app e confira',
-          payload: '/home'
-        )
+          CustomNotification(
+              id: 1,
+              title: 'Atualizações na Lista de Compras!',
+              body: 'A lista de compras ${listaDeCompras.nome} foi atualizada! Entre no app e confira',
+              payload: '/home'
+          )
       );
 
     } catch (e) {
@@ -468,9 +455,57 @@ class _FormPageState extends State<FormPage>{
     }
   }
 
+  Future<void> buscarItensDaLista() async {
+    if(primeiraBusca)
+      return;
+
+    int lista = widget.listaDeCompras.id;
+    DatabaseReference listaRef = FirebaseDatabase.instance.ref().child('listas_de_compras').child(lista.toString());
+
+    // Faz a consulta para buscar as listas onde o usuário está incluído como membro
+    DatabaseEvent dbEvent = await listaRef.once();
+
+    // Verifica se o snapshot tem algum valor
+    if (dbEvent.snapshot.value != null) {
+      // Converte o valor para o tipo correto (Map<String, dynamic>?)
+      DataSnapshot dataSnapshot = dbEvent.snapshot;
+
+      Map<Object?, Object?> dataMap = dataSnapshot.value as Map<Object?, Object?>;
+      Map<String, dynamic> dataMapConverted = convertMap(dataMap);
+
+      // Itera sobre cada par chave/valor no mapa
+      dataMapConverted?.forEach((key, value) {
+        if (key == 'itens') {
+          // Limpa a lista antes de preenchê-la com os novos dados
+          List<Item> itens = [];
+          itens = (value as List<dynamic>).map((item) {
+            return Item(
+              item['nome'],
+              item['quantidade'],
+              UnidadeDeMedida.values[item['unidade']],
+              // Recuperar o enum usando o índice numérico
+              item['status'],
+              item['categoria'],
+            );
+          }).toList();
+
+          widget.listaDeCompras.itens?.clear();
+          itens.forEach((element) {
+            widget.listaDeCompras.itens?.add(element);
+          });
+        }
+      });
+    }
+
+    setState(() {
+      primeiraBusca = true;
+    });
+  }
+
   Future<void> buscarDados() async {
     buscarItensDaLista();
     buscarCategoriasDeItens();
+    buscarContatos();
     selectedCategoria = listCategoriasItens.first;
   }
 
@@ -498,6 +533,40 @@ class _FormPageState extends State<FormPage>{
             listCategoriasItens.add(categoriaValue);
         }
       });
+    }
+  }
+
+  Future<void> buscarContatos() async {
+
+    String uid = user.uid;
+    DatabaseReference contatosRef = FirebaseDatabase.instance.ref().child('contatos').child(uid);
+
+    // Faz a consulta para buscar os contatos do usuário
+    DatabaseEvent dbEvent = await contatosRef.once();
+
+    // Limpa a lista antes de preenchê-la com os novos dados
+    listaContatos.clear();
+
+    // Verifica se o snapshot tem algum valor
+    if (dbEvent.snapshot.value != null) {
+      // Converte o valor para o tipo correto (Map<dynamic, dynamic>?)
+      Map<dynamic, dynamic>? dataMap = dbEvent.snapshot.value as Map<dynamic, dynamic>?;
+
+      if (dataMap != null) {
+        // Itera sobre cada contato no mapa
+        dataMap.forEach((key, value) {
+          String contatoNome = value['nome'];
+          String contatoEmail = value['email'];
+
+          // Cria uma instância de Contact com os dados do contato
+          Contact contato = Contact(
+            contatoNome,
+            contatoEmail,
+          );
+          contato.id = value['id'];
+          listaContatos.add(contato);
+        });
+      }
     }
   }
 }

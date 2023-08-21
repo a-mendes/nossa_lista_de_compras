@@ -137,7 +137,8 @@ class _ContactPageState extends State<ContactPage> {
 
   void showEditContatoDialog(BuildContext context, Contact contact, int index){
     txtControlerNome.text = contact.nome;
-    txtControlerEmail.text = contact.email;
+    txtControlerEmail.text = contact.email.toString();
+
     showDialog(
       context: context,
       builder: (_) {
@@ -291,7 +292,7 @@ class _ContactPageState extends State<ContactPage> {
 
   Future<void> salvarContatos(Contact contatoSave) async {
     try {
-      if(contatoSave.nome.isNotEmpty  &&  contatoSave.email.isNotEmpty){
+      if(contatoSave.nome.isNotEmpty  &&  contatoSave.email != null){
         DatabaseReference listaRef = _database.ref().child('contatos').child(user.uid);
 
         DatabaseReference newContactRef = listaRef.child(contatoSave.id.toString());  // Cria um novo nó filho com um ID exclusivo
