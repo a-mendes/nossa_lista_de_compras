@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:nossa_lista_de_compras/custom_notification.dart';
 import 'package:nossa_lista_de_compras/pages/main_page.dart';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -15,15 +14,17 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  FirebaseDatabase.instance.setPersistenceEnabled(true);
+  FirebaseDatabase.instance.setPersistenceCacheSizeBytes(10000000); // Define o tamanho máximo do cache local
 
   runApp(
-    MultiProvider(
-      providers: [
-        Provider<NotificationService>(create: (context) => NotificationService()),
-        Provider<FirebaseMessagingService>(create: (context) => FirebaseMessagingService(context.read<NotificationService>()))
-      ],
-      child: const MyApp(),
-    )
+      MultiProvider(
+        providers: [
+          Provider<NotificationService>(create: (context) => NotificationService()),
+          Provider<FirebaseMessagingService>(create: (context) => FirebaseMessagingService(context.read<NotificationService>()))
+        ],
+        child: const MyApp(),
+      )
   );
 }
 
