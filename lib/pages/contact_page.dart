@@ -288,6 +288,9 @@ class _ContactPageState extends State<ContactPage> {
         });
       }
     }
+    if(listaContatos.isNotEmpty){
+      listaContatos.sort((a, b) => a.nome.compareTo(b.nome));
+    }
   }
 
   Future<void> salvarContatos(Contact contatoSave) async {

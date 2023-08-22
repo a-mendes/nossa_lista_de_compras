@@ -34,7 +34,7 @@ class _FormPageState extends State<FormPage>{
   @override
   void initState() {
     super.initState();
-    buscarCategoriasDeItens();
+    buscarDados();
     updateItensLista("Exibir Tudo");
   }
 
@@ -241,14 +241,7 @@ class _FormPageState extends State<FormPage>{
                   widget.listaDeCompras.membros!.add(
                       txtControlerMembro.text.trim());
                   Navigator.pop(context);
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return const AlertDialog(
-                        content: Text('Membro adicionado com sucesso!'),
-                      );
-                    },
-                  );
+                  salvarListaDeCompras();
                 }
               },
               child: const Text('Adicionar Membro'),
@@ -330,10 +323,6 @@ class _FormPageState extends State<FormPage>{
         );
       },
     );
-  }
-
-  void updateMembroItem(String? membro){
-    item.categoria = membro!;
   }
 
   void updateCategoriaItem(String? categoria){
@@ -600,6 +589,9 @@ class _FormPageState extends State<FormPage>{
           listaContatos.add(contato);
         });
       }
+    }
+    if(listaContatos.isNotEmpty){
+      listaContatos.sort((a, b) => a.nome.compareTo(b.nome));
     }
   }
 }
