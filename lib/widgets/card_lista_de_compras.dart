@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:nossa_lista_de_compras/lista_de_compras.dart';
 import 'package:nossa_lista_de_compras/pages/lista_de_compras_page.dart';
 
+import '../card_customization.dart';
+
 class CardListaDeCompra extends StatelessWidget {
   const CardListaDeCompra({
   super.key,
@@ -13,6 +15,7 @@ class CardListaDeCompra extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: CustomColorUtils.getColor(listaDeCompras.cor),
         child: InkWell(
             onTap: () {
               Navigator.of(context).push(
@@ -24,7 +27,8 @@ class CardListaDeCompra extends StatelessWidget {
             child: Container(
               height: 290,
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20)),
+                  borderRadius: BorderRadius.circular(20)
+              ),
               margin: const EdgeInsets.all(5),
               padding: const EdgeInsets.all(5),
               child: Stack(
@@ -33,9 +37,9 @@ class CardListaDeCompra extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Expanded(
-                        child: Image.network(
-                          'https://i.pinimg.com/originals/4a/38/7b/4a387bda853bca3782d73234c786a150.png',
-                          fit: BoxFit.fill,
+                        child: Icon(
+                          Icons.shopping_cart,
+                          size: 32,
                         ),
                       ),
                       Text(
@@ -45,17 +49,6 @@ class CardListaDeCompra extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const Row(
-                        children: [
-                          Text(
-                            'Membros',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ],
-                      )
                     ],
                   ),
                 ],
