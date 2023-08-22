@@ -68,7 +68,7 @@ class _FormPageState extends State<FormPage>{
                     ),
                   );
                 } else if (snapshot.hasError) {
-                  return Text('Erro ao buscar as listas: ${snapshot.error}');
+                  return Center(child: Text('Erro ao buscar as listas: ${snapshot.error}'));
                 } else {
                   return showItensLista();
                 }
@@ -101,7 +101,7 @@ class _FormPageState extends State<FormPage>{
 
   Widget showItensLista() {
     if(itensFiltrados.length <= 0)
-      return Text('Você ainda não adicionou nenhum item');
+      return Center(child: Text('Você ainda não adicionou nenhum item'));
 
     return ListView.builder(
       padding: const EdgeInsets.all(8),

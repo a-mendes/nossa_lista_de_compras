@@ -63,7 +63,7 @@ class _HomePageState extends State<HomePage> {
                     return Text('Erro ao buscar as listas: ${snapshot.error}');
                   } else {
                     return listListaDeCompras.isEmpty
-                      ? const Text('Você ainda não criou nenhuma lista de compras')
+                      ? const Center(child:Text('Você ainda não criou nenhuma lista de compras'))
                       : showListasDeComprasGrid(listListaDeCompras);
                   }
                 },

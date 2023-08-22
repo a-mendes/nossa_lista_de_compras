@@ -37,7 +37,6 @@ class ListaDeCompras {
       return 0;
     }
 
-    print("categoria on add $categoria");
     itens?.add(Item(nomeItem, qtde, unidade, false, categoria));
     return 1;
   }
