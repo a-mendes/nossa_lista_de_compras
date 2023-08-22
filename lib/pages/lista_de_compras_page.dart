@@ -208,7 +208,8 @@ class _FormPageState extends State<FormPage>{
                 ),
                 TextFormField(
                   controller: txtControlerMembro,
-                  decoration: const InputDecoration(hintText: 'Email do membro'),
+                  decoration: const InputDecoration(
+                      hintText: 'Email do membro'),
                   validator: (value) {
                     if (value != null) {
                       return value.isNotEmpty ? null : 'Digite algum texto';
@@ -232,9 +233,13 @@ class _FormPageState extends State<FormPage>{
             ),
             TextButton(
               onPressed: () {
-                if (txtControlerMembro.text.trim().isNotEmpty) {
-                  widget.listaDeCompras.membros = widget.listaDeCompras.membros?.toList();
-                  widget.listaDeCompras.membros!.add(txtControlerMembro.text.trim());
+                if (txtControlerMembro.text
+                    .trim()
+                    .isNotEmpty) {
+                  widget.listaDeCompras.membros =
+                      widget.listaDeCompras.membros?.toList();
+                  widget.listaDeCompras.membros!.add(
+                      txtControlerMembro.text.trim());
                   Navigator.pop(context);
                   showDialog(
                     context: context,
@@ -253,56 +258,6 @@ class _FormPageState extends State<FormPage>{
       },
     );
   }
-
-  Future<void> buscarItensDaLista() async {
-    if(primeiraBusca) {
-      return;
-    }
-
-    int lista = widget.listaDeCompras.id;
-    DatabaseReference listaRef = FirebaseDatabase.instance.ref().child('listas_de_compras').child(lista.toString());
-
-    // Faz a consulta para buscar as listas onde o usuário está incluído como membro
-    DatabaseEvent dbEvent = await listaRef.once();
-
-    // Verifica se o snapshot tem algum valor
-    if (dbEvent.snapshot.value != null) {
-      // Converte o valor para o tipo correto (Map<String, dynamic>?)
-      DataSnapshot dataSnapshot = dbEvent.snapshot;
-
-      Map<Object?, Object?> dataMap = dataSnapshot.value as Map<Object?, Object?>;
-      Map<String, dynamic> dataMapConverted = convertMap(dataMap);
-
-      // Itera sobre cada par chave/valor no mapa
-      dataMapConverted?.forEach((key, value) {
-        if (key == 'itens') {
-          // Limpa a lista antes de preenchê-la com os novos dados
-          List<Item> itens = [];
-          itens = (value as List<dynamic>).map((item) {
-            return Item(
-              item['nome'],
-              item['quantidade'],
-              UnidadeDeMedida.values[item['unidade']],
-              // Recuperar o enum usando o índice numérico
-              item['status'],
-              item['categoria'],
-            );
-          }).toList();
-
-          widget.listaDeCompras.itens?.clear();
-          itens.forEach((element) {
-              widget.listaDeCompras.itens?.add(element);
-          });
-        }
-      });
-    }
-
-    setState(() {
-      primeiraBusca = true;
-    });
-  }
-
-
 
   void showAddNovoItemDialog(BuildContext context){
     showDialog(
@@ -579,7 +534,6 @@ class _FormPageState extends State<FormPage>{
     buscarItensDaLista();
     buscarCategoriasDeItens();
     buscarContatos();
-    selectedCategoria = listCategoriasItens.first;
   }
 
   Future<void> buscarCategoriasDeItens() async {
