@@ -1,6 +1,11 @@
 import 'dart:ffi';
 import 'dart:math';
 
+import 'package:flutter/animation.dart';
+import 'package:flutter/material.dart';
+
+import 'card_customization.dart';
+
 enum UnidadeDeMedida {
   u,  //Unidades
   kg, //Kilogramas
@@ -13,9 +18,10 @@ class ListaDeCompras {
   String nome;
   List<Item>? itens;
   List<String>? membros;
+  CustomColor cor;
   var id = Random().nextInt(100000000);
 
-  ListaDeCompras(this.nome, {List<Item>? itens, List<String>? membros})
+  ListaDeCompras(this.nome, this.cor, {List<Item>? itens, List<String>? membros})
       : itens = itens ?? [],
         membros = membros ?? [];
 

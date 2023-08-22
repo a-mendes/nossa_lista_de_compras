@@ -1,10 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:nossa_lista_de_compras/card_customization.dart';
 import 'package:nossa_lista_de_compras/custom_notification.dart';
 import 'package:nossa_lista_de_compras/custom_utils.dart';
 import 'package:nossa_lista_de_compras/services/firebase_messaging_service.dart';
 import 'package:nossa_lista_de_compras/services/notification_service.dart';
 import 'package:nossa_lista_de_compras/widgets/card_lista_de_compras.dart';
+import 'package:nossa_lista_de_compras/widgets/dropdownmenu_custom.dart';
 import 'package:provider/provider.dart';
 import '../lista_de_compras.dart';
 
@@ -25,6 +27,9 @@ class _HomePageState extends State<HomePage> {
   List<ListaDeCompras> listListaDeCompras = [];
 
   final txtControlerNomeLista = TextEditingController();
+
+  /* Personalização Card Lista */
+  CustomColor corLista =  CustomColor.white;
 
   @override
   void initState() {
@@ -75,9 +80,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void addNovaListaDeCompras() {
+  void addNovaListaDeCompras(/*Color cor, Icon icone*/) {
     ListaDeCompras novaLista = ListaDeCompras(
       txtControlerNomeLista.text,
+      corLista,
       membros: [user.email.toString()],
     );
     salvarListaDeCompras(novaLista);
@@ -118,16 +124,25 @@ class _HomePageState extends State<HomePage> {
                     decoration: const InputDecoration(
                         hintText: "Nome da Lista"),
                   ),
+
+                  DropdownMenuCustom<String>(
+                      list: CustomColor.values.map((e) => e.toString().split('.').last).toList(),
+                      doOnSelected: (String? cor) => {
+                      corLista = CustomColor.values.firstWhere(
+                            (status) => status.toString().split('.').last == cor,
+                        orElse: () => CustomColor.pastelYellow),
+                    }
+                  )
                 ],
-              )),
+              )
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Cancelar'),
             ),
             TextButton(
-              onPressed: () =>
-              {
+              onPressed: () => {
                 addNovaListaDeCompras(),
                 Navigator.pop(context)
               },
@@ -188,6 +203,7 @@ class _HomePageState extends State<HomePage> {
 
             ListaDeCompras lista = ListaDeCompras(
               value['nome'],
+              CustomColorUtils.getCustomColor(value['cor']),
               itens: itens,
               membros: membros.cast<String>(),
             );
@@ -206,6 +222,7 @@ class _HomePageState extends State<HomePage> {
       await listaRef.set({
         'id': listaDeCompras.id,
         'nome': listaDeCompras.nome,
+        'cor': listaDeCompras.cor.toString(),
         'itens': listaDeCompras.itens?.map((item) => {
           'nome': item.nome,
           'quantidade': item.quantidade,
